@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
-import { AnimatePresence, motion, useReducedMotion, useScroll } from "framer-motion";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowDown, ArrowRight, ArrowUpRight, Check, Download, Globe2, Menu, X } from "lucide-react";
 import {
   contact,
@@ -50,16 +50,42 @@ function Media({ project, locale, priority = false }: { project: (typeof project
 export default function PortfolioClient({ locale }: { locale: Locale }) {
   const t = copy[locale];
   const otherLocale: Locale = locale === "pt" ? "en" : "pt";
+  const heroRef = useRef<HTMLElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeExperience, setActiveExperience] = useState(0);
   const [contactType, setContactType] = useState<"project" | "opportunity">("project");
   const [formStatus, setFormStatus] = useState("");
   const reduced = useReducedMotion();
   const { scrollYProgress } = useScroll();
+  const { scrollYProgress: heroProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"],
+  });
+  const heroCopyY = useTransform(heroProgress, [0, 1], [0, 64]);
+  const heroPortraitY = useTransform(heroProgress, [0, 1], [0, 118]);
+  const heroGridX = useTransform(heroProgress, [0, 1], [0, 44]);
+  const principlesX = useTransform(scrollYProgress, [0, 1], ["0%", "-24%"]);
 
   useEffect(() => {
     document.documentElement.lang = locale === "pt" ? "pt-BR" : "en";
   }, [locale]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [menuOpen]);
 
   function submitContact(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,8 +109,8 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
       <motion.div className="scroll-progress" style={{ scaleX: scrollYProgress }} />
       <a className="skip-link" href="#work">{locale === "pt" ? "Pular para projetos" : "Skip to work"}</a>
 
-      <section className="hero" id="top">
-        <div className="hero-grid" aria-hidden="true" />
+      <section className="hero" id="top" ref={heroRef}>
+        <motion.div className="hero-grid" aria-hidden="true" style={reduced ? undefined : { x: heroGridX }} />
         <motion.div className="hero-orbit hero-orbit-a" aria-hidden="true" animate={reduced ? undefined : { rotate: 360 }} transition={{ duration: 35, repeat: Infinity, ease: "linear" }} />
         <motion.div className="hero-orbit hero-orbit-b" aria-hidden="true" animate={reduced ? undefined : { rotate: -360 }} transition={{ duration: 48, repeat: Infinity, ease: "linear" }} />
 
@@ -100,13 +126,13 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
               <Globe2 size={14} /> {locale.toUpperCase()} <span>/ {otherLocale.toUpperCase()}</span>
             </Link>
             <a className="header-cta" href="#contact">{locale === "pt" ? "Vamos trabalhar juntos" : "Let's work together"}<ArrowUpRight size={15} /></a>
-            <button className="menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label={locale === "pt" ? "Abrir menu" : "Open menu"}><Menu /></button>
+            <button className="menu-button" type="button" onClick={() => setMenuOpen(true)} aria-label={locale === "pt" ? "Abrir menu" : "Open menu"} aria-expanded={menuOpen} aria-controls="mobile-navigation"><Menu /></button>
           </div>
         </header>
 
         <AnimatePresence>
           {menuOpen && (
-            <motion.div className="mobile-menu" initial={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }} animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }} exit={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}>
+            <motion.div id="mobile-navigation" className="mobile-menu" role="dialog" aria-modal="true" aria-label={locale === "pt" ? "Menu principal" : "Main menu"} initial={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }} animate={{ opacity: 1, clipPath: "inset(0 0 0% 0)" }} exit={{ opacity: 0, clipPath: "inset(0 0 100% 0)" }}>
               <div className="mobile-menu-top"><span>Davi Nascimento</span><button type="button" onClick={() => setMenuOpen(false)} aria-label={locale === "pt" ? "Fechar menu" : "Close menu"}><X /></button></div>
               <nav aria-label={locale === "pt" ? "Navegação para celular" : "Mobile navigation"}>
                 {t.nav.map((item, index) => <a key={item} href={`#${sectionIds[index]}`} onClick={() => setMenuOpen(false)}><span>0{index + 1}</span>{item}</a>)}
@@ -116,7 +142,7 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
           )}
         </AnimatePresence>
 
-        <div className="hero-copy">
+        <motion.div className="hero-copy" style={reduced ? undefined : { y: heroCopyY }}>
           <motion.p className="eyebrow" initial={reduced ? false : { opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: .5 }}><span />{t.direction}</motion.p>
           <h1 aria-label={`${t.heroA} ${t.heroB}`}>
             <motion.span className="headline-line" initial={reduced ? false : { y: "110%" }} animate={{ y: 0 }} transition={{ duration: .8, ease: [0.2, .9, .2, 1] }}>{t.heroA}</motion.span>
@@ -131,10 +157,10 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
           <motion.div className="hero-capability-line" initial={reduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .78 }} aria-label={locale === "pt" ? "Áreas de atuação" : "Areas of practice"}>
             <span>AI SYSTEMS</span><span>SOFTWARE</span><span>DATA</span><span>PRODUCT</span>
           </motion.div>
-        </div>
+        </motion.div>
 
-        <motion.div className="hero-portrait" initial={reduced ? false : { opacity: 0, scale: .94, rotate: -2 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: .9, delay: .25 }}>
-        <div className="portrait-frame"><Image src="/davi-hero-enhanced.webp" alt={locale === "pt" ? "Retrato de Davi Nascimento" : "Portrait of Davi Nascimento"} fill priority sizes="(max-width: 900px) 88vw, 42vw" quality={92} /></div>
+        <motion.div className="hero-portrait" style={reduced ? undefined : { y: heroPortraitY }} initial={reduced ? false : { opacity: 0, scale: .94, rotate: -2 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: .9, delay: .25 }}>
+          <div className="portrait-frame"><Image src="/davi-hero-enhanced.webp" alt={locale === "pt" ? "Retrato de Davi Nascimento" : "Portrait of Davi Nascimento"} fill priority sizes="(max-width: 900px) 88vw, 42vw" quality={92} /></div>
           <motion.div className="portrait-label label-role" whileHover={reduced ? undefined : { rotate: -3, scale: 1.04 }}>{locale === "pt" ? <>Engenharia,<br />produto e IA</> : <>Engineering,<br />product and AI</>}</motion.div>
           <motion.div className="portrait-label label-award" whileHover={reduced ? undefined : { rotate: 2, scale: 1.04 }}>Top 20<br /><small>{locale === "pt" ? "jovens empreendedores" : "young entrepreneurs"}</small></motion.div>
           <div className="portrait-code">BRA · 13°33&apos;S<br />BUILD / LEARN / MOVE</div>
@@ -145,6 +171,14 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
         </div>
       </section>
 
+      <div className="principles-rail" aria-label={locale === "pt" ? "Princípios de trabalho" : "Working principles"}>
+        <motion.div className="principles-track" style={reduced ? undefined : { x: principlesX }}>
+          {[...t.principles, ...t.principles].map((item, index) => (
+            <span key={`${item}-${index}`} aria-hidden={index >= t.principles.length}><small>{String((index % t.principles.length) + 1).padStart(2, "0")}</small>{item}</span>
+          ))}
+        </motion.div>
+      </div>
+
       <section className="work-section section-pad" id="work">
         <Reveal className="section-intro">
           <p className="eyebrow dark"><span />{t.workEyebrow}</p>
@@ -154,10 +188,10 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
 
         <div className="project-board">
           {projects.map((item, index) => (
-            <motion.article key={item.slug} className={`project-card project-card-${index + 1}`} initial={reduced ? false : { opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: .6, delay: index * .06 }}>
+            <motion.article key={item.slug} className={`project-card project-card-${index + 1}`} initial={reduced ? false : { opacity: 0, y: 35 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-80px" }} transition={{ duration: .6, delay: index * .06 }} whileHover={reduced ? undefined : { y: -8 }}>
               <Link className="project-card-media" href={`/${locale}/${locale === "pt" ? "projetos" : "projects"}/${item.slug}`} aria-label={`${t.openCase}: ${item.title}`}>
                 <div className={`project-media project-media-${item.slug} accent-${item.accent}`}><Media project={item} locale={locale} priority={index === 0} /></div>
-                <span>CASE / {String(index + 1).padStart(2, "0")}</span>
+                <span className="project-card-label">CASE / {String(index + 1).padStart(2, "0")}<ArrowUpRight size={13} /></span>
               </Link>
               <div className="project-card-copy">
                 <div className="project-stage-meta"><span>{item.organization}</span><span>{item.year}</span></div>
@@ -181,7 +215,7 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
         <div className="experience-layout">
           <div className="experience-list">
             {experiences.map((item, index) => (
-              <button type="button" key={item.organization} className={activeExperience === index ? "is-active" : ""} onClick={() => setActiveExperience(index)}>
+              <button type="button" key={item.organization} className={activeExperience === index ? "is-active" : ""} aria-pressed={activeExperience === index} onClick={() => setActiveExperience(index)}>
                 <span>0{index + 1}</span><strong>{item.organization}</strong><ArrowRight size={18} />
               </button>
             ))}
@@ -245,8 +279,8 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
         <Reveal className="contact-heading"><p className="eyebrow"><span />{t.contactEyebrow}</p><h2>{t.contactTitleA}{" "}<em>{t.contactTitleB}</em></h2><p>{t.contactBody}</p></Reveal>
         <div className="contact-layout">
           <div className="contact-type" role="group" aria-label={locale === "pt" ? "Tipo de contato" : "Contact type"}>
-            <button type="button" className={contactType === "project" ? "is-active" : ""} onClick={() => setContactType("project")}><span>01</span>{t.projectOption}<Check size={18} /></button>
-            <button type="button" className={contactType === "opportunity" ? "is-active" : ""} onClick={() => setContactType("opportunity")}><span>02</span>{t.opportunityOption}<Check size={18} /></button>
+            <button type="button" className={contactType === "project" ? "is-active" : ""} aria-pressed={contactType === "project"} onClick={() => setContactType("project")}><span>01</span>{t.projectOption}<Check size={18} /></button>
+            <button type="button" className={contactType === "opportunity" ? "is-active" : ""} aria-pressed={contactType === "opportunity"} onClick={() => setContactType("opportunity")}><span>02</span>{t.opportunityOption}<Check size={18} /></button>
             <div className="direct-contact"><span>{t.directContact}</span><a href={`mailto:${contact.email}`}>{contact.email}</a><a href={contact.linkedin} target="_blank" rel="noreferrer">LinkedIn <ArrowUpRight size={15} /></a></div>
           </div>
           <form className="contact-form" onSubmit={submitContact}>
