@@ -154,16 +154,12 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
             <a className="button button-secondary" href="#contact">{t.workWithMe}<ArrowUpRight size={17} /></a>
           </motion.div>
           <motion.div className="availability" initial={reduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .65 }}><span />{t.availability}</motion.div>
-          <motion.div className="hero-capability-line" initial={reduced ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: .78 }} aria-label={locale === "pt" ? "Áreas de atuação" : "Areas of practice"}>
-            <span>AI SYSTEMS</span><span>SOFTWARE</span><span>DATA</span><span>PRODUCT</span>
-          </motion.div>
         </motion.div>
 
         <motion.div className="hero-portrait" style={reduced ? undefined : { y: heroPortraitY }} initial={reduced ? false : { opacity: 0, scale: .94, rotate: -2 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} transition={{ duration: .9, delay: .25 }}>
           <div className="portrait-frame"><Image src="/davi-hero-enhanced.webp" alt={locale === "pt" ? "Retrato de Davi Nascimento" : "Portrait of Davi Nascimento"} fill priority sizes="(max-width: 900px) 88vw, 42vw" quality={92} /></div>
           <motion.div className="portrait-label label-role" whileHover={reduced ? undefined : { rotate: -3, scale: 1.04 }}>{locale === "pt" ? <>Engenharia,<br />produto e IA</> : <>Engineering,<br />product and AI</>}</motion.div>
           <motion.div className="portrait-label label-award" whileHover={reduced ? undefined : { rotate: 2, scale: 1.04 }}>Top 20<br /><small>{locale === "pt" ? "jovens empreendedores" : "young entrepreneurs"}</small></motion.div>
-          <div className="portrait-code">BRA · 13°33&apos;S<br />BUILD / LEARN / MOVE</div>
         </motion.div>
 
         <div className="credibility-strip" aria-label={locale === "pt" ? "Destaques profissionais" : "Professional highlights"}>
