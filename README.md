@@ -26,13 +26,20 @@ Open the local URL printed by the development server. The default route is in Po
 ## Checks and deployment
 
 ```bash
-npm run lint
-npm run build:vercel
+npm run build
+npx tsc --noEmit
+npm audit
 ```
 
-`build:vercel` runs the Next.js production build. The separate `build` script uses Vinext. The current `test` script references `tests/rendered-html.test.mjs`, which is not present in this revision; it should be repaired before treating `npm test` as a passing check.
+The production build uses Vite and Vinext to generate a Cloudflare Worker. `vite.config.ts` defines the Cloudflare adapter and `wrangler.jsonc` defines the Worker named `davijesus`.
 
-Production availability and domain configuration are being reviewed separately. A successful local build does not establish that the public deployment is healthy.
+```bash
+npm run deploy:vinext
+```
+
+The Cloudflare preview is available at [davijesus.ndaviix.workers.dev](https://davijesus.ndaviix.workers.dev). The custom domain is `davijesus.me`.
+
+The `build:vercel` script remains available as a temporary rollback path. The current `test` script references `tests/rendered-html.test.mjs`, which is not present in this revision. `npm run lint` is configured, but it did not finish in a reasonable time during the migration review, so neither command should be treated as a passing check yet.
 
 ## Working on the content
 
