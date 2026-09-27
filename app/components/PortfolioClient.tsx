@@ -266,7 +266,7 @@ export default function PortfolioClient({ locale }: { locale: Locale }) {
           <Reveal className="about-copy" delay={.08}>
             <p className="eyebrow dark"><span />{t.aboutEyebrow}</p><h2>{t.aboutTitleA}{" "}<em>{t.aboutTitleB}</em></h2><p>{t.aboutBody}</p>
             <div className="skills-list">{t.skills.map((skill, index) => <span key={skill}><small>0{index + 1}</small>{skill}</span>)}</div>
-            <a className="download-link" href="/davi-nascimento-resume.pdf" aria-disabled="true" onClick={(event) => event.preventDefault()}>{locale === "pt" ? "Currículo em preparação" : "Résumé in preparation"}<Download size={17} /></a>
+            <span className="download-link" aria-disabled="true">{locale === "pt" ? "Currículo em preparação" : "Résumé in preparation"}<Download size={17} /></span>
           </Reveal>
         </div>
       </section>
